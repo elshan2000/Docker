@@ -1,4 +1,4 @@
-# Docker Registry API v1 vs v2 – Differences
+# Docker Registry API v1 vs v2 Differences
 
 ## Image Model Difference
 

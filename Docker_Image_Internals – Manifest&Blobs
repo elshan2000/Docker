@@ -42,13 +42,13 @@ It answers:
 ### 🔹 Example Request
 
 ```http
-GET  /v2/helloooooo/manifests/latest
+GET  /v2/image_name/manifests/latest
 ```
 
 or
 
 ```http
-HEAD /v2/helloooooo/manifests/latest
+HEAD /v2/image_name/manifests/latest
 ```
 
 ➡️ Docker always does this **first**.
@@ -118,7 +118,7 @@ Each layer represents filesystem changes:
 ### 🔹 Example Blob Request
 
 ```http
-GET /v2/helloooooo/blobs/sha256:bbb222
+GET /v2/image_name/blobs/sha256:bbb222
 ```
 
 ➡️ This downloads **one layer**.
@@ -157,7 +157,7 @@ This blob contains **image metadata**, not files.
 ### Requested As
 
 ```http
-GET /v2/helloooooo/blobs/sha256:aaa111
+GET /v2/image_name/blobs/sha256:aaa111
 ```
 
 ---
@@ -165,10 +165,10 @@ GET /v2/helloooooo/blobs/sha256:aaa111
 ## 4️⃣ Docker Pull – Full Flow
 
 1. `GET  /v2/`
-2. `GET  /v2/helloooooo/manifests/latest`
-3. `GET  /v2/helloooooo/blobs/sha256:aaa111`   (config)
-4. `GET  /v2/helloooooo/blobs/sha256:bbb222`   (layer 1)
-5. `GET  /v2/helloooooo/blobs/sha256:ccc333`   (layer 2)
+2. `GET  /v2/image_name/manifests/latest`
+3. `GET  /v2/image_name/blobs/sha256:aaa111`   (config)
+4. `GET  /v2/image_name/blobs/sha256:bbb222`   (layer 1)
+5. `GET  /v2/image_name/blobs/sha256:ccc333`   (layer 2)
 
 ### ✔ Key Points
 
@@ -180,10 +180,10 @@ GET /v2/helloooooo/blobs/sha256:aaa111
 
 ## 5️⃣ Docker Push – Full Flow
 
-1. `POST  /v2/helloooooo/blobs/uploads/`
-2. `PATCH /v2/helloooooo/blobs/uploads/<uuid>`
-3. `PUT   /v2/helloooooo/blobs/uploads/<uuid>?digest=sha256:bbb222`
-4. `PUT   /v2/helloooooo/manifests/latest`
+1. `POST  /v2/image_name/blobs/uploads/`
+2. `PATCH /v2/image_name/blobs/uploads/<uuid>`
+3. `PUT   /v2/image_name/blobs/uploads/<uuid>?digest=sha256:bbb222`
+4. `PUT   /v2/image_name/manifests/latest`
 
 ### 🔑 Important
 

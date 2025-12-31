@@ -1,0 +1,192 @@
+# Docker Image Internals – Manifest & Blobs
+
+## Docker Image Contents
+
+A Docker image is **NOT a single file**.
+
+It is made of:
+
+* 📄 **Manifest** → metadata + index (what to download)
+* 🧱 **Blobs** → actual data (layers, config)
+
+### Think of it like this
+
+```
+Docker Image
+│
+├── Manifest  (what to download)
+│
+├── Blob #1   (layer: OS files)
+├── Blob #2   (layer: app dependencies)
+├── Blob #3   (layer: your app)
+└── Blob #4   (config JSON)
+```
+
+---
+
+## 2️⃣ What is a Manifest?
+
+### 🔹 Definition
+
+A **manifest** is a JSON document that **describes the image**, but **does NOT contain the image data itself**.
+
+It answers:
+
+* What layers exist?
+* In what order?
+* What architecture (amd64, arm64)?
+* What config blob should be used?
+
+---
+
+### 🔹 Example Request
+
+```http
+GET  /v2/helloooooo/manifests/latest
+```
+
+or
+
+```http
+HEAD /v2/helloooooo/manifests/latest
+```
+
+➡️ Docker always does this **first**.
+
+---
+
+### 🔹 Example Manifest (Simplified)
+
+```json
+{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+  "config": {
+    "mediaType": "application/vnd.docker.container.image.v1+json",
+    "digest": "sha256:aaa111",
+    "size": 7023
+  },
+  "layers": [
+    {
+      "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+      "digest": "sha256:bbb222",
+      "size": 32654
+    },
+    {
+      "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+      "digest": "sha256:ccc333",
+      "size": 84521
+    }
+  ]
+}
+```
+
+### 🔑 Important
+
+* Manifest contains **only references**
+* Digest values **point to blobs**
+* ❌ Nothing is downloaded yet
+
+---
+
+## 3️⃣ What is a Blob?
+
+### 🔹 Definition
+
+A **blob** is a binary object (raw data).
+
+There are **two types of blobs**:
+
+* **Layer blobs** → filesystem changes
+* **Config blob** → image metadata
+
+---
+
+## 🧱 3.1 Layer Blobs (Most Important)
+
+Each layer represents filesystem changes:
+
+| Layer Type | Example                |
+| ---------- | ---------------------- |
+| Base OS    | `/bin`, `/lib`, `/usr` |
+| Runtime    | Node, Python, Java     |
+| App deps   | npm, pip               |
+| App code   | your files             |
+
+---
+
+### 🔹 Example Blob Request
+
+```http
+GET /v2/helloooooo/blobs/sha256:bbb222
+```
+
+➡️ This downloads **one layer**.
+
+Docker repeats this for **every layer**.
+
+---
+
+### 🔹 Why Layers Exist?
+
+Because of **reuse and caching**:
+
+* `ubuntu:22.04` layer reused across thousands of images
+* Docker downloads **only missing layers**
+* Saves **bandwidth** and **time**
+
+---
+
+## ⚙️ 3.2 Config Blob
+
+This blob contains **image metadata**, not files.
+
+### Example Contents
+
+```json
+{
+  "Env": ["NODE_ENV=production"],
+  "Cmd": ["node", "app.js"],
+  "WorkingDir": "/app",
+  "ExposedPorts": {
+    "3000/tcp": {}
+  }
+}
+```
+
+### Requested As
+
+```http
+GET /v2/helloooooo/blobs/sha256:aaa111
+```
+
+---
+
+## 4️⃣ Docker Pull – Full Flow
+
+1. `GET  /v2/`
+2. `GET  /v2/helloooooo/manifests/latest`
+3. `GET  /v2/helloooooo/blobs/sha256:aaa111`   (config)
+4. `GET  /v2/helloooooo/blobs/sha256:bbb222`   (layer 1)
+5. `GET  /v2/helloooooo/blobs/sha256:ccc333`   (layer 2)
+
+### ✔ Key Points
+
+* Manifest first
+* Blobs after
+* Only missing blobs are downloaded
+
+---
+
+## 5️⃣ Docker Push – Full Flow
+
+1. `POST  /v2/helloooooo/blobs/uploads/`
+2. `PATCH /v2/helloooooo/blobs/uploads/<uuid>`
+3. `PUT   /v2/helloooooo/blobs/uploads/<uuid>?digest=sha256:bbb222`
+4. `PUT   /v2/helloooooo/manifests/latest`
+
+### 🔑 Important
+
+* Blobs are uploaded **first**
+* Manifest is uploaded **last**
+* Manifest is the image **commit**

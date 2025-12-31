@@ -1,6 +1,6 @@
 # Docker Registry API v1 vs v2 – Differences
 
-## 1️⃣ Image Model Difference
+## Image Model Difference
 
 ### v2 Image Structure (Modern)
 
@@ -23,7 +23,7 @@ Tag
 
 ---
 
-## 2️⃣ Conceptual Difference
+## Conceptual Difference
 
 | Aspect             | v1 (Old)         | v2 (Modern)                |
 | ------------------ | ---------------- | -------------------------- |
@@ -31,12 +31,12 @@ Tag
 | Layers             | Implicit         | Explicit blobs             |
 | Deduplication      | Weak             | Strong                     |
 | Security           | No content trust | Supports signing           |
-| Multi-arch         | ❌ No             | ✅ Yes                      |
+| Multi-arch         | No               | Yes                        |
 | Garbage collection | Hard             | Clean & reliable           |
 
 ---
 
-## 3️⃣ Request-Level Difference
+## Request-Level Difference
 
 ### v1 API (Deprecated)
 
@@ -53,8 +53,8 @@ Tag
 ### v2 API (Current Standard)
 
 ```bash
-/v2/<name>/manifests/<tag>
-/v2/<name>/blobs/<digest>
+/v2/<image_name>/manifests/<tag>
+/v2/<image_name>/blobs/<digest>
 ```
 
 **What happens internally:**
@@ -66,17 +66,7 @@ Tag
 
 ---
 
-## 4️⃣ Why v2 Is Better (Summary)
-
-* 📦 Layer reuse across images
-* 🚀 Faster pulls & pushes
-* 🔐 Strong integrity via SHA256
-* 🧩 Supports OCI & multi-architecture images
-* 🗑️ Safe garbage collection
-
----
-
-## 5️⃣ Real-World Example
+## Example
 
 ```bash
 docker pull nginx:latest
